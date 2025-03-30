@@ -77,9 +77,8 @@
       align-items: center;
       gap: 10px;
     }
-    .small-input {
-      width: 30px;
-      text-align: center;
+    select.small-input {
+      width: 50px;
     }
     .score {
       margin-top: 20px;
@@ -110,10 +109,10 @@
   <button onclick="setRandomTime()">New Random Time</button>
 
   <div class="radio-group">
-    <label><input type="radio" name="timeFormat" value="uhr"> <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"> Uhr</label>
-    <label><input type="radio" name="timeFormat" value="viertel"> Viertel <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"></label>
-    <label><input type="radio" name="timeFormat" value="halb"> Halb <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"></label>
-    <label><input type="radio" name="timeFormat" value="dreiviertel"> Dreiviertel <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"></label>
+    <label><input type="radio" name="timeFormat" value="uhr"> <select class="small-input" onchange="handleDropdownChange(this)"></select> Uhr</label>
+    <label><input type="radio" name="timeFormat" value="viertel"> Viertel <select class="small-input" onchange="handleDropdownChange(this)"></select></label>
+    <label><input type="radio" name="timeFormat" value="halb"> Halb <select class="small-input" onchange="handleDropdownChange(this)"></select></label>
+    <label><input type="radio" name="timeFormat" value="dreiviertel"> Dreiviertel <select class="small-input" onchange="handleDropdownChange(this)"></select></label>
   </div>
 
   <div>
@@ -131,6 +130,29 @@
     let good = 0;
     let bad = 0;
 
+    function populateDropdowns() {
+      const selects = document.querySelectorAll('select.small-input');
+      selects.forEach(select => {
+        select.innerHTML = '<option value=""></option>';
+        for (let i = 1; i <= 12; i++) {
+          const option = document.createElement('option');
+          option.value = i;
+          option.textContent = i;
+          select.appendChild(option);
+        }
+      });
+    }
+
+    function handleDropdownChange(changedSelect) {
+      const allSelects = document.querySelectorAll('select.small-input');
+      allSelects.forEach(select => {
+        if (select !== changedSelect) {
+          select.selectedIndex = 0;
+        }
+      });
+      changedSelect.previousElementSibling.checked = true;
+    }
+
     function setRandomTime() {
       const hourEl = document.getElementById('hour');
       const minuteEl = document.getElementById('minute');
@@ -145,7 +167,8 @@
       hourEl.style.transform = `translate(-50%, -100%) rotate(${hourAngle}deg)`;
       minuteEl.style.transform = `translate(-50%, -100%) rotate(${minuteAngle}deg)`;
 
-      console.log(`Random Time: ${currentHour}:${currentMinute < 10 ? '0' : ''}${currentMinute}`);
+      document.querySelectorAll('select.small-input').forEach(select => select.selectedIndex = 0);
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
     }
 
     function checkAnswer() {
@@ -154,10 +177,10 @@
       let value = null;
 
       radios.forEach((radio, i) => {
-        const input = radio.parentElement.querySelector('input.small-input');
+        const select = radio.parentElement.querySelector('select.small-input');
         if (radio.checked) {
           selectedType = radio.value;
-          value = parseInt(input.value);
+          value = parseInt(select.value);
         }
       });
 
@@ -187,12 +210,13 @@
       document.getElementById('good').textContent = good;
       document.getElementById('bad').textContent = bad;
 
-      document.querySelectorAll('input.small-input').forEach(input => input.value = '');
+      document.querySelectorAll('select.small-input').forEach(select => select.selectedIndex = 0);
       document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
 
       setRandomTime();
     }
 
+    populateDropdowns();
     setRandomTime();
   </script>
 </body>
