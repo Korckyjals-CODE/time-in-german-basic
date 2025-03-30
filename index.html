@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Clock</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f0f0f0;
+    }
+    .clock {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 10px solid #333;
+      border-radius: 50%;
+      background: white;
+    }
+    .number {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      transform: translate(-50%, -50%);
+    }
+    .center {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #333;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .hand {
+      position: absolute;
+      width: 4px;
+      top: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      transform: translate(-50%, -100%) rotate(0deg);
+    }
+    .hour {
+      height: 70px;
+      background: #333;
+      z-index: 3;
+    }
+    .minute {
+      height: 100px;
+      background: red;
+      z-index: 2;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .radio-group {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 18px;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .small-input {
+      width: 30px;
+      text-align: center;
+    }
+    .score {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock">
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="center"></div>
+    <script>
+      for (let i = 1; i <= 12; i++) {
+        const num = document.createElement('div');
+        num.className = 'number';
+        num.textContent = i;
+        const angle = (i - 3) * 30 * Math.PI / 180;
+        const radius = 130;
+        num.style.left = `${150 + radius * Math.cos(angle)}px`;
+        num.style.top = `${150 + radius * Math.sin(angle)}px`;
+        document.querySelector('.clock').appendChild(num);
+      }
+    </script>
+  </div>
+
+  <button onclick="setRandomTime()">New Random Time</button>
+
+  <div class="radio-group">
+    <label><input type="radio" name="timeFormat" value="uhr"> <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"> Uhr</label>
+    <label><input type="radio" name="timeFormat" value="viertel"> Viertel <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"></label>
+    <label><input type="radio" name="timeFormat" value="halb"> Halb <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"></label>
+    <label><input type="radio" name="timeFormat" value="dreiviertel"> Dreiviertel <input type="text" maxlength="2" class="small-input" oninput="this.previousElementSibling.checked = true"></label>
+  </div>
+
+  <div>
+    <button onclick="checkAnswer()">Check</button>
+    <button onclick="resetScore()">Reset</button>
+  </div>
+
+  <div class="score">
+    ✅ Good: <span id="good">0</span> &nbsp;&nbsp; ❌ Bad: <span id="bad">0</span>
+  </div>
+
+  <script>
+    let currentHour = 0;
+    let currentMinute = 0;
+    let good = 0;
+    let bad = 0;
+
+    function setRandomTime() {
+      const hourEl = document.getElementById('hour');
+      const minuteEl = document.getElementById('minute');
+
+      const minuteOptions = [0, 15, 30, 45];
+      currentMinute = minuteOptions[Math.floor(Math.random() * minuteOptions.length)];
+      currentHour = Math.floor(Math.random() * 12);
+
+      const hourAngle = ((currentHour % 12) + (currentMinute / 60)) * 30;
+      const minuteAngle = currentMinute * 6;
+
+      hourEl.style.transform = `translate(-50%, -100%) rotate(${hourAngle}deg)`;
+      minuteEl.style.transform = `translate(-50%, -100%) rotate(${minuteAngle}deg)`;
+
+      console.log(`Random Time: ${currentHour}:${currentMinute < 10 ? '0' : ''}${currentMinute}`);
+    }
+
+    function checkAnswer() {
+      const radios = document.getElementsByName('timeFormat');
+      let selectedType = null;
+      let value = null;
+
+      radios.forEach((radio, i) => {
+        const input = radio.parentElement.querySelector('input.small-input');
+        if (radio.checked) {
+          selectedType = radio.value;
+          value = parseInt(input.value);
+        }
+      });
+
+      let correct = false;
+      const hourForDisplay = (currentHour === 0 ? 12 : currentHour);
+      const nextHour = (hourForDisplay % 12) + 1;
+
+      if (selectedType === 'uhr' && value === hourForDisplay && currentMinute === 0) correct = true;
+      if (selectedType === 'viertel' && value === nextHour && currentMinute === 15) correct = true;
+      if (selectedType === 'halb' && value === nextHour && currentMinute === 30) correct = true;
+      if (selectedType === 'dreiviertel' && value === nextHour && currentMinute === 45) correct = true;
+
+      if (correct) {
+        good++;
+        document.getElementById('good').textContent = good;
+      } else {
+        bad++;
+        document.getElementById('bad').textContent = bad;
+      }
+
+      setRandomTime();
+    }
+
+    function resetScore() {
+      good = 0;
+      bad = 0;
+      document.getElementById('good').textContent = good;
+      document.getElementById('bad').textContent = bad;
+
+      document.querySelectorAll('input.small-input').forEach(input => input.value = '');
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+
+      setRandomTime();
+    }
+
+    setRandomTime();
+  </script>
+</body>
+</html>
